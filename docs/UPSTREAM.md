@@ -23,6 +23,12 @@ The active adapter assets match these files in `ops/proxy/`:
 
 The verified browser paths showed no known private or Tailscale IP literals. Besu nodes, chain data, RPC gateway, and Cloudflare settings were not changed for this inspection.
 
+## Source-tree comparison
+
+The tracked application/configuration tree in this repository was compared with the local OCI1 rollout workbench snapshot `2db6db123544d95f786e0a324eb8d47523cef55e` across `src/`, `public/`, the Dockerfile, package manifests, and build configuration. Both trees contain the same 99 paths: 76 files are byte-for-byte identical, and the other 23 differ only by a Commonworld attribution comment at the top of the repository copy. No executable or configuration lines differ in this comparison. The public adapter files also match the recorded live candidate hashes above.
+
+This is a source-tree comparison, not a fresh image build or proof from image labels. The remaining source-to-image evidence is summarized below.
+
 ## Image-to-source evidence and limitation
 
 The runtime image does not include `org.opencontainers.image.source` or `org.opencontainers.image.revision` labels. The rollout record says the local candidate archive was checksum-verified before transfer; the local and OCI image IDs differed, and a subsequent comparison recorded matching layer digests, platform, and image metadata. That provides artifact-transfer evidence for this candidate, while the running image itself does not declare its Git commit.
