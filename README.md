@@ -33,7 +33,7 @@ The branch roles are:
 - `main` is intended to record the latest reviewed Commonworld Testnet Explorer deployment; it remains on the prior public snapshot until a reviewed change is promoted.
 - `commonworld-testnet` is the working branch for the next testnet changes. After a change is reviewed, checked, and deployed, advance `main` to that deployed commit (normally by fast-forward).
 
-The latest recorded OCI1 deployment on 2026-11-22 used image descriptor `sha256:e41005c288a303b05eb202d7ff3f8edbb510ea40eaaf80a9309b98e3633330df`; its revision label matched source revision `bf1e7c15ec45797c3a123e97786efb8db5efe243`. That deployment and its evidence are documented in [docs/UPSTREAM.md](docs/UPSTREAM.md). This review branch mirrors its application changes; the public branch commit is not the commit that built the image, and `main` remains unchanged until review and promotion.
+The latest recorded OCI1 deployment on 2026-11-22 used image descriptor `sha256:e41005c288a303b05eb202d7ff3f8edbb510ea40eaaf80a9309b98e3633330df`; its revision label matched source revision `bf1e7c15ec45797c3a123e97786efb8db5efe243`. The application patch was reviewed and merged into public [`main`](https://github.com/commonworld-one/commonworld-explorer/commit/abef66ad6a16fe7bf91378d1c69048e3fe391e88) in PR #1. That public commit mirrors the application changes but is not the commit that built the image; see [docs/UPSTREAM.md](docs/UPSTREAM.md) for the evidence boundary.
 
 ## Commonworld Testnet
 

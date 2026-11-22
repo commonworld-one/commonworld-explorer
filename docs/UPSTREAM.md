@@ -27,7 +27,7 @@ The verified browser paths showed no known private or Tailscale IP literals. Bes
 
 The later deployment report records the Explorer image descriptor digest `sha256:e41005c288a303b05eb202d7ff3f8edbb510ea40eaaf80a9309b98e3633330df` for `linux/amd64`. Its `org.opencontainers.image.revision` label matched source revision `bf1e7c15ec45797c3a123e97786efb8db5efe243`. The transferred archive SHA-256, `77e1178d1b332c78717632a8dd38ec2de0963190b23ef10849e8cdf82ddfb600`, matched on the Mac and OCI1; the image configuration and all nine layer digests matched after export/import. This is artifact-transfer evidence, not a signed build attestation from GitHub Actions.
 
-The source revision added bounded recent-block reads, a three-second in-process cache, request coalescing, a maximum of four parallel block reads and five simultaneous RPC calls on that path. It also disabled validator voting by default and independently guarded both vote APIs. API error responses no longer return raw exception text. The corresponding application changes and tests are mirrored in this public review branch. The OCI-specific Compose file and deployment settings are not included.
+The source revision added bounded recent-block reads, a three-second in-process cache, request coalescing, a maximum of four parallel block reads and five simultaneous RPC calls on that path. It also disabled validator voting by default and independently guarded both vote APIs. API error responses no longer return raw exception text. The corresponding application changes and tests were merged into public `main` on 2026-11-22 through PR #1 at commit [`abef66a`](https://github.com/commonworld-one/commonworld-explorer/commit/abef66ad6a16fe7bf91378d1c69048e3fe391e88). The OCI-specific Compose file and deployment settings are not included.
 
 Post-deployment checks recorded:
 
@@ -42,7 +42,7 @@ Post-deployment checks recorded:
 
 A separate browser smoke on 2026-11-22 ran `/blocks` for 61 seconds with one tab, then 61 seconds with two tabs. Each showed ten real blocks and advancing height, with no browser errors. OCI1 logs recorded 22 and 35 successful `blocksGetRecent` responses in those respective windows and no failed responses; OVH gateway logs for the two-tab window showed no rate, concurrency, queue-rejection, 429, or 502 events. Those log counts are service-wide, not per-tab attribution. This is a short functional check, not a capacity test or soak.
 
-The current public review branch is not the build commit recorded in the OCI image label. It mirrors the application patch for review and CI; the public `main` branch remains unchanged until a separate promotion. Therefore the code comparison and the image's build provenance remain distinct claims.
+The public source mirror is not the build commit recorded in the OCI image label: `main` now contains the reviewed application patch at `abef66a`, while the image revision label records `bf1e7c15ec45797c3a123e97786efb8db5efe243`. The public commit mirrors that application change set but does not establish that this repository built the deployed image. Keep source-tree comparison and image build provenance as distinct claims.
 
 ## Earlier source-tree comparison (before the 19:52 UTC update)
 
@@ -63,9 +63,9 @@ The earlier check was a route and runtime smoke check, not a long soak, load tes
 - `master` remains the upstream comparison/synchronization branch.
 - `main` is intended to record the latest reviewed Commonworld Testnet deployment snapshot and remain the repository default branch.
 - `commonworld-testnet` is the forward development branch. After a change is reviewed and deployed, advance `main` to that deployed commit (normally by fast-forward).
-- `codex/sync-deployed-explorer-20261122` is a review branch that mirrors the application patch identified by the 19:52 UTC deployment record. It is not merged and does not change `main`.
+- `codex/sync-deployed-explorer-20261122` carried the application patch identified by the 19:52 UTC deployment record and was merged into `main` through PR #1 at `abef66a`.
 
-At the start of this review, `commonworld-testnet` and `main` both pointed to `2fe875282193413d9c49b0b34960bb687cb9399e`. Do not describe the new branch as deployed or as `main` until review and promotion are completed.
+At the start of this review, `commonworld-testnet` and `main` both pointed to `2fe875282193413d9c49b0b34960bb687cb9399e`. After PR #1, `main` advanced to `abef66ad6a16fe7bf91378d1c69048e3fe391e88`; `commonworld-testnet` remains at the earlier snapshot and should be synchronized before it is used for the next development cycle.
 
 ## Dependency audit
 
