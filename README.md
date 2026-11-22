@@ -10,7 +10,13 @@ Commonworld's testnet Explorer, maintained as a fork of the [Besu Blockchain Exp
 
 This repository is a Commonworld-maintained fork of Consensys' Besu Blockchain Explorer. The application started from upstream tag `0.0.3`, commit [`b6ac6f095f82b650a8f7401314ec14379bb43f78`](https://github.com/Consensys-Incorporated/besu-blockchain-explorer/commit/b6ac6f095f82b650a8f7401314ec14379bb43f78). The upstream Apache-2.0 license and attribution are retained; see [NOTICE](NOTICE).
 
-The `commonworld-testnet` branch contains Commonworld-specific application work and a small public-facing adapter. It is not a claim that the production service is built from this exact branch. The last recorded deployment snapshot (2026-11-21) used the upstream application image with a host-side adapter; the custom application changes in this branch still require a separately reviewed build and rollout.
+The branch roles are:
+
+- `master` follows the upstream fork for comparison and selected upstream updates.
+- `main` records the latest captured Commonworld Testnet Explorer version deployed on the network.
+- `commonworld-testnet` is the working branch for the next testnet changes. After a change is reviewed, checked, and deployed, the same commit is moved into `main`.
+
+The latest live snapshot, checked on 2026-11-22, had the custom application build and its public-facing adapter running. Direct transaction, block, and address pages were opened in a browser and showed chain data. The token detail route was checked with a contract that is not a token and showed the expected message. This was a smoke check, not a long soak or load test. Image-to-source evidence and its limits are recorded in [docs/UPSTREAM.md](docs/UPSTREAM.md).
 
 ## Commonworld Testnet
 
@@ -22,7 +28,7 @@ The `commonworld-testnet` branch contains Commonworld-specific application work 
 
 The Explorer's internal RPC connection is server-side configuration. Do not put private RPC URLs, credentials, or deployment environment files in this repository or in browser-visible data.
 
-## What this branch contains
+## What the Commonworld build contains
 
 - Direct object pages at `/tx/<hash>`, `/block/<number-or-hash>`, `/address/<address>`, and `/token/<address>`.
 - Root-level Explorer sections for nodes, validators, blocks, transactions, contracts, tokens, Playground, and Wallets.
@@ -30,7 +36,7 @@ The Explorer's internal RPC connection is server-side configuration. Do not put 
 - Peer display changes that omit internal node and transport addresses from public page data.
 - A server-side adapter source snapshot used to keep the internal RPC URL out of browser responses and serve a direct transaction route.
 
-These are source features. They do not certify that each one is live, fully tested, or deployed. Network operation and release require separate checks.
+The direct transaction, block, and address pages are confirmed in the checked live snapshot. A real token contract was not available in the checked recent window, so token metadata rendering remains to be verified with a token contract. The Explorer has not had a long soak or load test as part of that snapshot.
 
 ## Data and scope
 

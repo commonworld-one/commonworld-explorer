@@ -2,14 +2,14 @@
 
 This roadmap describes areas of work without delivery dates. A roadmap item is not a release commitment.
 
-## In this branch
+## In the current deployed snapshot
 
 - Direct transaction, block, address, and token pages.
 - Commonworld Testnet labels and root-level list routes.
 - Filtering internal peer transport details from page data.
 - Server-side response adaptation for public Explorer presentation.
 
-The branch is a development snapshot. The production deployment was last recorded as the upstream Explorer image plus a host-side adapter; production parity must be established before this branch is treated as a release source.
+The live snapshot on 2026-11-22 included the custom application build and public adapter. Direct transaction, block, and address pages were browser-checked. A real token contract and long-duration/load behavior still need separate verification. See [deployment provenance](docs/UPSTREAM.md).
 
 ## Product and interface
 
@@ -35,6 +35,7 @@ The branch is a development snapshot. The production deployment was last recorde
 ## Operations and releases
 
 - Make builds reproducible and record source commit, dependency lockfile, image digest, and target architecture for each release.
+- Embed the source commit in future image metadata so a running image identifies its exact source revision without relying only on a transfer report.
 - Add controlled route and API checks before deployment, then verify the same routes after rollout.
 - Measure Explorer query volume and resource use against the public RPC limits.
 - Keep deployment credentials, internal endpoints, keys, logs, and database snapshots outside the public source repository.

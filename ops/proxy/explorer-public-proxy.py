@@ -18,9 +18,13 @@ UPSTREAM_PORT = int(os.environ.get("UPSTREAM_PORT", "25001"))
 PUBLIC_RPC_URL = os.environ.get("PUBLIC_RPC_URL", "https://rpc-testnet.commonworld.one")
 # Set only in the server-side unit. This value must never be serialized to a browser.
 EXPLORER_INTERNAL_RPC_URL = os.environ.get("EXPLORER_INTERNAL_RPC_URL", "")
+LOCAL_REACT_ROUTES = os.environ.get("LOCAL_REACT_ROUTES", "0") == "1"
+APP_BASE_PATH = os.environ.get("BE_BASEPATH", "").rstrip("/")
+FORWARDED_PROTO = os.environ.get("FORWARDED_PROTO", "https")
 MAX_REQUEST_BODY = 4 * 1024 * 1024
 HERE = Path(__file__).resolve().parent
-TX_PAGE = (HERE / "explorer-transaction.html").read_bytes()
+TX_PAGE_PATH = HERE / "explorer-transaction.html"
+TX_PAGE = TX_PAGE_PATH.read_bytes() if TX_PAGE_PATH.exists() else b""
 
 HOP_BY_HOP = {
     "connection", "keep-alive", "proxy-authenticate", "proxy-authorization",
@@ -76,12 +80,13 @@ EXPLORER_DATA_STATUS_PATCH = r'''<script id="cwn-explorer-data-status">
 (() => {
   if (window.__cwnExplorerDataStatusPatched) return;
   window.__cwnExplorerDataStatusPatched = true;
-  const apiPath = "/explorer/api/blocksGetRecent";
+  const appBasePath = __APP_BASE_PATH__;
+  const apiPath = `${appBasePath}/api/blocksGetRecent`;
   const originalFetch = window.fetch.bind(window);
   const pageKind = () => {
     const path = window.location.pathname;
-    if (path.endsWith("/explorer/transactions")) return "transactions";
-    if (path.endsWith("/explorer/blocks")) return "blocks";
+    if (path.endsWith(`${appBasePath}/transactions`)) return "transactions";
+    if (path.endsWith(`${appBasePath}/blocks`)) return "blocks";
     return null;
   };
   const showStatus = (state, message) => {
@@ -150,7 +155,7 @@ EXPLORER_DATA_STATUS_PATCH = r'''<script id="cwn-explorer-data-status">
     }
   };
 })();
-</script>'''.encode()
+</script>'''.replace("__APP_BASE_PATH__", json.dumps(APP_BASE_PATH)).encode()
 
 SCRIPT_CACHE_BUSTER = re.compile(
     rb'((?:src|href)="[^"]*/_next/static/chunks/[^"]+\.js)(\?[^"]*)?(")'
@@ -195,7 +200,8 @@ def rewrite_api_request_body(path: str, body: bytes) -> bytes:
     """Pin browser-originated Explorer API calls to the server-side RPC URL."""
     if not EXPLORER_INTERNAL_RPC_URL or not body:
         return body
-    if not urlsplit(path).path.startswith("/explorer/api/"):
+    api_prefix = f"{APP_BASE_PATH}/api/" if APP_BASE_PATH else "/api/"
+    if not urlsplit(path).path.startswith(api_prefix):
         return body
     try:
         payload = json.loads(body)
@@ -260,7 +266,20 @@ class ExplorerPublicProxy(BaseHTTPRequestHandler):
                 self.wfile.write(payload)
             return
 
-        if parsed.path == "/tx" or parsed.path.startswith("/tx/"):
+        if not APP_BASE_PATH and (parsed.path == "/explorer" or parsed.path.startswith("/explorer/")):
+            payload = b"Not found\n"
+            self.send_response(404)
+            self.send_header("Content-Type", "text/plain; charset=utf-8")
+            self.send_header("Content-Length", str(len(payload)))
+            self.send_header("Cache-Control", "no-store")
+            self.send_header("Connection", "close")
+            self.end_headers()
+            if not head_only:
+                self.wfile.write(payload)
+            self.close_connection = True
+            return
+
+        if not LOCAL_REACT_ROUTES and (parsed.path == "/tx" or parsed.path.startswith("/tx/")):
             return self._send_transaction_page(head_only)
 
         content_length = int(self.headers.get("Content-Length", "0") or "0")
@@ -284,12 +303,18 @@ class ExplorerPublicProxy(BaseHTTPRequestHandler):
             request_headers[name] = value
         request_headers["Host"] = self.headers.get("Host", "explorer-testnet.commonworld.one")
         request_headers["X-Forwarded-Host"] = self.headers.get("Host", "explorer-testnet.commonworld.one")
-        request_headers["X-Forwarded-Proto"] = "https"
+        request_headers["X-Forwarded-Proto"] = FORWARDED_PROTO
         request_headers["Accept-Encoding"] = "identity"
         if request_body is not None:
             request_headers["Content-Length"] = str(len(request_body))
 
         upstream_path = self.path
+        if LOCAL_REACT_ROUTES and APP_BASE_PATH:
+            public_path = parsed.path
+            if re.match(r"^/(?:tx|address|block|token)(?:/|$)", public_path):
+                upstream_path = APP_BASE_PATH + public_path
+                if parsed.query:
+                    upstream_path += "?" + parsed.query
         conn = HTTPConnection(UPSTREAM_HOST, UPSTREAM_PORT, timeout=45)
         try:
             conn.request(self.command, upstream_path, body=request_body, headers=request_headers)
