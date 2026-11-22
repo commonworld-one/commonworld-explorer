@@ -5,6 +5,7 @@ on:
     branches: [ main, commonworld-testnet ]
   pull_request:
     branches: [ main, commonworld-testnet ]
+  workflow_dispatch:
   # publish.yml runs this before publishing a release tag.
   workflow_call:
 
