@@ -1,6 +1,6 @@
+// Commonworld Testnet modifications/additions; see NOTICE.
 import { useState } from "react";
 import { BlockCountSelect } from "@/components/Explorer/BlockCountSelect";
-import { ContractDialog } from "@/components/Explorer/ContractDialog";
 import { PageHeader } from "@/components/Layout/PageHeader";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -17,7 +17,6 @@ import type { TokenSummary } from "@/types/Explorer";
 export default function Tokens({ config }: PageProps) {
   const [tokens, setTokens] = useState<TokenSummary[] | null>(null);
   const [count, setCount] = useState(10);
-  const [open, setOpen] = useState<string | null>(null);
 
   usePolling(
     async (signal) => {
@@ -61,22 +60,16 @@ export default function Tokens({ config }: PageProps) {
               </TableHeader>
               <TableBody>
                 {tokens.map((t) => (
-                  <TableRow
-                    key={t.address}
-                    tabIndex={0}
-                    onClick={() => setOpen(t.address)}
-                    onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && setOpen(t.address)}
-                    className="cursor-pointer outline-none focus-visible:bg-muted/50"
-                  >
+                  <TableRow key={t.address}>
                     <TableCell>
-                      <span className="font-medium">{t.name ?? "Unnamed"}</span>
+                      <a href={`/token/${t.address}`} className="font-medium hover:text-primary">{t.name ?? "Unnamed"}</a>
                       {t.symbol && <span className="ml-2 text-muted-foreground">{t.symbol}</span>}
                     </TableCell>
                     <TableCell>
                       <StatusBadge tone="info">{t.type}</StatusBadge>
                     </TableCell>
                     <TableCell className="font-mono text-xs" title={t.address}>
-                      {shortenHex(t.address)}
+                      <a href={`/token/${t.address}`} className="hover:text-primary">{shortenHex(t.address)}</a>
                     </TableCell>
                     <TableCell className="text-right tabular-nums">
                       {formatTokenAmount(t.totalSupply, t.decimals)}
@@ -91,7 +84,6 @@ export default function Tokens({ config }: PageProps) {
         </CardContent>
       </Card>
 
-      <ContractDialog rpcUrl={config.rpcUrl} address={open} onClose={() => setOpen(null)} />
     </>
   );
 }

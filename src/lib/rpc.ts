@@ -1,3 +1,4 @@
+// Commonworld Testnet modifications/additions; see NOTICE.
 import { computeAddress } from "ethers";
 import { loadConfig } from "@/lib/config";
 import { clientIdentity } from "@/lib/format";
@@ -35,7 +36,9 @@ const allowedMethods = new Set([
   "eth_call",
   "eth_chainId",
   "eth_getBalance",
+  "eth_getTransactionCount",
   "eth_getBlockByNumber",
+  "eth_getBlockByHash",
   "eth_getCode",
   "eth_getLogs",
   "eth_getTransactionByHash",

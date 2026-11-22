@@ -1,26 +1,23 @@
+// Commonworld Testnet modifications/additions; see NOTICE.
 import { useState } from "react";
 import { toast } from "sonner";
 import { BlockCountSelect } from "@/components/Explorer/BlockCountSelect";
-import { BlockDialog } from "@/components/Explorer/BlockDialog";
 import { SearchForm } from "@/components/Explorer/SearchForm";
-import { TxnDialog } from "@/components/Explorer/TxnDialog";
 import { PageHeader } from "@/components/Layout/PageHeader";
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { getPageProps } from "@/lib/api.server";
-import { errorMessage, postApi } from "@/lib/api";
+import { postApi } from "@/lib/api";
 import { gasUsedPercent, hexToDecimal, hexToNumber, shortenHex, timeAgo } from "@/lib/format";
 import { usePolling } from "@/lib/hooks";
 import type { PageProps } from "@/types/Config";
-import type { Block, Txn } from "@/types/Explorer";
+import type { Block } from "@/types/Explorer";
 
 export default function Blocks({ config }: PageProps) {
   const [blocks, setBlocks] = useState<Block[] | null>(null);
   const [count, setCount] = useState(10);
   const [now, setNow] = useState(() => Date.now());
-  const [openBlock, setOpenBlock] = useState<Block | null>(null);
-  const [openTxn, setOpenTxn] = useState<Txn | null>(null);
 
   usePolling(
     async (signal) => {
@@ -38,16 +35,7 @@ export default function Blocks({ config }: PageProps) {
       toast.error("Enter a block number");
       return;
     }
-    try {
-      const block = await postApi<Block | null>("blockGetByNumber", {
-        rpcUrl: config.rpcUrl,
-        blockNumber: "0x" + n.toString(16),
-      });
-      if (block) setOpenBlock(block);
-      else toast.error(`Block ${n} not found`);
-    } catch (e) {
-      toast.error("Block lookup failed", { description: errorMessage(e) });
-    }
+    window.location.assign(`/block/${n}`);
   };
 
   return (
@@ -86,12 +74,9 @@ export default function Blocks({ config }: PageProps) {
                 {blocks.map((b) => (
                   <TableRow
                     key={b.hash}
-                    tabIndex={0}
-                    onClick={() => setOpenBlock(b)}
-                    onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && setOpenBlock(b)}
-                    className="cursor-pointer outline-none focus-visible:bg-muted/50"
+                    className="outline-none focus-visible:bg-muted/50"
                   >
-                    <TableCell className="font-medium tabular-nums text-primary">#{hexToNumber(b.number)}</TableCell>
+                    <TableCell className="font-medium tabular-nums text-primary"><a href={`/block/${hexToNumber(b.number)}`} className="hover:underline">#{hexToNumber(b.number)}</a></TableCell>
                     <TableCell className="text-muted-foreground">{timeAgo(b.timestamp, now)}</TableCell>
                     <TableCell className="text-right tabular-nums">{b.transactions.length}</TableCell>
                     <TableCell className="font-mono text-xs" title={b.miner}>
@@ -108,8 +93,6 @@ export default function Blocks({ config }: PageProps) {
         </CardContent>
       </Card>
 
-      <BlockDialog block={openBlock} now={now} onClose={() => setOpenBlock(null)} onSelectTxn={setOpenTxn} />
-      <TxnDialog txn={openTxn} onClose={() => setOpenTxn(null)} />
     </>
   );
 }

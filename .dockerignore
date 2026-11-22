@@ -3,6 +3,8 @@
 .next
 node_modules
 .env.local
+.env.production
+ops
 *.md
 Dockerfile
 .dockerignore

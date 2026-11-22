@@ -1,3 +1,4 @@
+// Commonworld Testnet modifications/additions; see NOTICE.
 import fs from "fs/promises";
 import type { ExplorerConfig, ValidatorNode } from "@/types/Config";
 
@@ -18,15 +19,14 @@ export async function loadConfig(): Promise<ExplorerConfig> {
   };
 }
 
-// Reads BE_VALIDATORS_CONFIG_PATH, or /config/validators.json when it's unset.
-// A missing default file just means voting is off; a missing explicit one is an error.
+// The optional demo validator file is mounted at a fixed container path.
+// A missing file means validator voting is off.
 async function loadValidators(): Promise<ValidatorNode[]> {
-  const explicitPath = process.env.BE_VALIDATORS_CONFIG_PATH;
   let text: string;
   try {
-    text = await fs.readFile(explicitPath || DEFAULT_VALIDATORS_PATH, "utf8");
+    text = await fs.readFile(DEFAULT_VALIDATORS_PATH, "utf8");
   } catch (e) {
-    if (!explicitPath && (e as NodeJS.ErrnoException).code === "ENOENT") return [];
+    if ((e as NodeJS.ErrnoException).code === "ENOENT") return [];
     throw e;
   }
   return parseValidators(JSON.parse(text));

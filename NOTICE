@@ -1,0 +1,12 @@
+Commonworld Explorer
+
+This repository is derived from Besu Blockchain Explorer by Consensys, Inc.
+Upstream repository: https://github.com/Consensys-Incorporated/besu-blockchain-explorer
+Upstream base: tag 0.0.3, commit b6ac6f095f82b650a8f7401314ec14379bb43f78
+Upstream license: Apache License 2.0 (see LICENSE)
+
+Commonworld modifications include Explorer routes and views, Commonworld
+Testnet currency and network presentation, peer-data filtering, and a
+server-side response adapter. The upstream license and applicable upstream
+notices remain in force. See README.md and the commit history for project
+scope and changes.

@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark light">
+  <title>Transaction · Commonworld Testnet</title>
+  <style>
+    :root { color-scheme: light dark; font: 16px/1.5 system-ui, sans-serif; }
+    body { margin: 0; background: #0b1020; color: #e8edf8; }
+    main { box-sizing: border-box; width: min(920px, 100%); margin: 0 auto; padding: 28px 20px 56px; }
+    header { border-bottom: 1px solid #29334b; background: #111a2d; }
+    header > div { width: min(920px, 100%); box-sizing: border-box; margin: 0 auto; padding: 18px 20px; }
+    a { color: #8eb7ff; }
+    h1 { margin: 12px 0 4px; font-size: 1.65rem; }
+    .muted { color: #a8b3c7; }
+    .card { margin-top: 22px; border: 1px solid #34415c; border-radius: 12px; background: #131c30; padding: 18px; }
+    #state { font-weight: 650; }
+    #state[data-kind="error"] { color: #ff9999; }
+    #state[data-kind="success"] { color: #8fe0b0; }
+    dl { display: grid; grid-template-columns: minmax(145px, 190px) 1fr; gap: 0; margin: 18px 0 0; }
+    dt, dd { margin: 0; padding: 11px 0; border-top: 1px solid #29334b; }
+    dt { color: #a8b3c7; }
+    dd { overflow-wrap: anywhere; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+    code { font-family: inherit; }
+    @media (max-width: 560px) { dl { grid-template-columns: 1fr; } dd { border-top: 0; padding-top: 0; } }
+  </style>
+</head>
+<body>
+  <header><div><a href="/explorer/blocks">Commonworld Testnet Explorer</a></div></header>
+  <main>
+    <p class="muted"><a href="/explorer/transactions">Transactions</a> / Details</p>
+    <h1>Transaction details</h1>
+    <p class="muted">Public chain data. This page does not require sign in or wallet connection.</p>
+    <section class="card" aria-live="polite">
+      <div id="state">Loading transaction from Commonworld Testnet…</div>
+      <dl id="details"></dl>
+    </section>
+  </main>
+  <script>
+  (() => {
+    const rpcUrl = "__PUBLIC_RPC_URL__";
+    const chainIdExpected = "0xa98b9f";
+    const state = document.getElementById("state");
+    const details = document.getElementById("details");
+    const rawHash = location.pathname.split("/").filter(Boolean)[1] || "";
+    let hash;
+    try { hash = decodeURIComponent(rawHash); } catch { hash = ""; }
+    const hashPattern = /^0x[0-9a-fA-F]{64}$/;
+
+    function setState(message, kind = "") {
+      state.textContent = message;
+      state.dataset.kind = kind;
+    }
+    function addField(label, value) {
+      const dt = document.createElement("dt");
+      const dd = document.createElement("dd");
+      dt.textContent = label;
+      dd.textContent = value == null || value === "" ? "—" : String(value);
+      details.append(dt, dd);
+    }
+    function hexNumber(value) {
+      return value == null ? "—" : BigInt(value).toString(10);
+    }
+    function tCWN(weiHex) {
+      const wei = BigInt(weiHex || "0x0");
+      const scale = 10n ** 18n;
+      const whole = wei / scale;
+      const remainder = (wei % scale).toString().padStart(18, "0").replace(/0+$/, "");
+      return `${whole}${remainder ? `.${remainder}` : ""} tCWN`;
+    }
+    async function rpc(method, params) {
+      const response = await fetch(rpcUrl, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ jsonrpc: "2.0", id: method, method, params })
+      });
+      if (!response.ok) throw new Error(`RPC returned HTTP ${response.status}`);
+      const result = await response.json();
+      if (result.error) throw new Error(result.error.message || "RPC request failed");
+      return result.result;
+    }
+    async function load() {
+      if (!hashPattern.test(hash)) {
+        setState("Invalid transaction hash. Expected 0x followed by 64 hexadecimal characters.", "error");
+        return;
+      }
+      try {
+        const [chainId, transaction, receipt] = await Promise.all([
+          rpc("eth_chainId", []),
+          rpc("eth_getTransactionByHash", [hash]),
+          rpc("eth_getTransactionReceipt", [hash])
+        ]);
+        if (chainId.toLowerCase() !== chainIdExpected) {
+          setState(`RPC returned unexpected Chain ID ${chainId}.`, "error");
+          return;
+        }
+        if (!transaction) {
+          setState("Transaction not found on Commonworld Testnet.", "error");
+          return;
+        }
+        if (receipt && receipt.status === "0x1") setState("Successful transaction", "success");
+        else if (receipt && receipt.status === "0x0") setState("Transaction failed", "error");
+        else setState("Transaction found; receipt is still pending.");
+        addField("Transaction hash", transaction.hash || hash);
+        addField("Block number", hexNumber(receipt?.blockNumber || transaction.blockNumber));
+        addField("From", transaction.from);
+        addField("To", transaction.to || "Contract creation");
+        addField("Amount", tCWN(transaction.value));
+        addField("Nonce", hexNumber(transaction.nonce));
+        addField("Gas used", receipt ? hexNumber(receipt.gasUsed) : "Pending");
+        addField("Effective gas price", receipt?.effectiveGasPrice == null ? "Pending" : `${hexNumber(receipt.effectiveGasPrice)} wei`);
+        addField("Transaction fee", receipt?.gasUsed == null || receipt?.effectiveGasPrice == null ? "Pending" : tCWN(`0x${(BigInt(receipt.gasUsed) * BigInt(receipt.effectiveGasPrice)).toString(16)}`));
+      } catch (error) {
+        setState(`Could not load this transaction: ${error.message}`, "error");
+      }
+    }
+    load();
+  })();
+  </script>
+</body>
+</html>

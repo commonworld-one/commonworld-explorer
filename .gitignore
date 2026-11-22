@@ -39,3 +39,23 @@ yarn-error.log*
 *.tsbuildinfo
 config.local.json
 validators.local.json
+
+# Explorer deployment and local test data
+.env
+.env.*
+!.env.example
+!.env.local.example
+explorer.env
+secrets/
+*.key
+*.p12
+*.pfx
+*.token
+data/
+logs/
+results/
+*.sqlite
+*.sqlite3
+*.db
+.idea/
+.vscode/

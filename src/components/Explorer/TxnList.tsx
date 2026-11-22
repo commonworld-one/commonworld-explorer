@@ -1,3 +1,4 @@
+// Commonworld Testnet modifications/additions; see NOTICE.
 import { Coins, FileCode2, ImageIcon, Send } from "lucide-react";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { hexToEther, hexToNumber, shortenHex, timeAgo } from "@/lib/format";
@@ -39,13 +40,11 @@ export type TxnRow = { txn: Txn; timestamp?: string };
 // edges; otherwise the list sits in its own bordered box (as in a dialog).
 export function TxnList({
   rows,
-  onSelect,
   showBlock = true,
   inset = false,
   now,
 }: {
   rows: TxnRow[];
-  onSelect: (txn: Txn) => void;
   showBlock?: boolean;
   inset?: boolean;
   // Shows each row's age when given along with the block timestamps.
@@ -55,8 +54,8 @@ export function TxnList({
     <ul className={cn("divide-y", inset ? "-mx-(--card-spacing)" : "rounded-lg border")}>
       {rows.map(({ txn: t, timestamp }) => (
         <li key={t.hash}>
-          <button
-            onClick={() => onSelect(t)}
+          <a
+            href={`/tx/${t.hash}`}
             className={cn(
               "grid w-full gap-2 py-3 text-left outline-none hover:bg-muted/50 focus-visible:bg-muted/50 sm:grid-cols-[5.5rem_1fr_auto] sm:items-center sm:gap-4",
               inset ? "px-(--card-spacing)" : "px-3"
@@ -76,9 +75,9 @@ export function TxnList({
                   {timestamp && now !== undefined && ` · ${timeAgo(timestamp, now)}`}
                 </p>
               )}
-              <p>{hexToEther(t.value)} ETH</p>
+              <p>{hexToEther(t.value)} tCWN</p>
             </div>
-          </button>
+          </a>
         </li>
       ))}
     </ul>

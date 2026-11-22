@@ -1,3 +1,4 @@
+// Commonworld Testnet modifications/additions; see NOTICE.
 import { decodeBytes32String, id, Interface } from "ethers";
 import { ethApiCall } from "@/lib/rpc";
 import type { Block, TokenInfo, TokenType } from "@/types/Explorer";
@@ -57,6 +58,24 @@ function transferLogs(rpcUrl: string, from: number, to: number): Promise<Log[]> 
     {
       fromBlock: "0x" + from.toString(16),
       toBlock: "0x" + to.toString(16),
+      topics: [[TRANSFER_TOPIC, TRANSFER_SINGLE_TOPIC, TRANSFER_BATCH_TOPIC]],
+    },
+  ]);
+}
+
+// Transfer events for one contract over a bounded recent window.
+export async function recentTokenTransferLogs(
+  rpcUrl: string,
+  address: string,
+  count: number
+): Promise<Log[]> {
+  const latest = parseInt(await ethApiCall<string>(rpcUrl, "eth_blockNumber"), 16);
+  const from = Math.max(latest - count + 1, 0);
+  return ethApiCall<Log[]>(rpcUrl, "eth_getLogs", [
+    {
+      address,
+      fromBlock: "0x" + from.toString(16),
+      toBlock: "0x" + latest.toString(16),
       topics: [[TRANSFER_TOPIC, TRANSFER_SINGLE_TOPIC, TRANSFER_BATCH_TOPIC]],
     },
   ]);

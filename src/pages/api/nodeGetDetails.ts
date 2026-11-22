@@ -1,9 +1,10 @@
+// Commonworld Testnet modifications/additions; see NOTICE.
 import { apiRoute } from "@/lib/api.server";
 import { ethApiCall } from "@/lib/rpc";
 import { requireString } from "@/lib/validate";
 import type { NodeDetails } from "@/types/Nodes";
 
-type NodeInfo = { id: string; name: string; enode: string; ip: string };
+type NodeInfo = { id: string; name: string };
 
 export default apiRoute<NodeDetails>(async (body) => {
   const rpcUrl = requireString(body, "rpcUrl");
@@ -19,8 +20,6 @@ export default apiRoute<NodeDetails>(async (body) => {
       online: true,
       nodeId: info.id,
       nodeName: info.name,
-      enode: info.enode,
-      ip: info.ip,
       blocks: parseInt(blockNumber, 16),
       peers: parseInt(peerCount, 16),
       pendingTxns: txpool ? txpool.length : -1,
@@ -31,8 +30,6 @@ export default apiRoute<NodeDetails>(async (body) => {
       online: false,
       nodeId: "",
       nodeName: "",
-      enode: "",
-      ip: "",
       blocks: 0,
       peers: 0,
       pendingTxns: 0,

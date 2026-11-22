@@ -1,3 +1,4 @@
+// Commonworld Testnet modifications/additions; see NOTICE.
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -20,19 +21,15 @@ export function PeersTable({ peers }: { peers: Peer[] }) {
               <TableRow>
                 <TableHead>Client</TableHead>
                 <TableHead>Node ID</TableHead>
-                <TableHead>Local address</TableHead>
-                <TableHead>Remote address</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {peers.map((p) => (
                 <TableRow key={p.id}>
                   <TableCell>{p.name}</TableCell>
-                  <TableCell className="font-mono" title={p.enode}>
+                  <TableCell className="font-mono">
                     {shortenHex(p.id, 12, 8)}
                   </TableCell>
-                  <TableCell className="font-mono">{p.localAddress}</TableCell>
-                  <TableCell className="font-mono">{p.remoteAddress}</TableCell>
                 </TableRow>
               ))}
             </TableBody>

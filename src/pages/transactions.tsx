@@ -1,24 +1,23 @@
+// Commonworld Testnet modifications/additions; see NOTICE.
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { BlockCountSelect } from "@/components/Explorer/BlockCountSelect";
 import { SearchForm } from "@/components/Explorer/SearchForm";
-import { TxnDialog } from "@/components/Explorer/TxnDialog";
 import { TxnList } from "@/components/Explorer/TxnList";
 import { PageHeader } from "@/components/Layout/PageHeader";
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getPageProps } from "@/lib/api.server";
-import { errorMessage, postApi } from "@/lib/api";
+import { postApi } from "@/lib/api";
 import { usePolling } from "@/lib/hooks";
 import type { PageProps } from "@/types/Config";
-import type { Block, Txn } from "@/types/Explorer";
+import type { Block } from "@/types/Explorer";
 
 export default function Transactions({ config }: PageProps) {
   const [blocks, setBlocks] = useState<Block[] | null>(null);
   const [lookback, setLookback] = useState(10);
   const [now, setNow] = useState(() => Date.now());
-  const [openTxn, setOpenTxn] = useState<Txn | null>(null);
 
   usePolling(
     async (signal) => {
@@ -40,13 +39,11 @@ export default function Transactions({ config }: PageProps) {
   );
 
   const searchTxn = async (hash: string) => {
-    try {
-      const txn = await postApi<Txn | null>("txnGetByHash", { rpcUrl: config.rpcUrl, hash });
-      if (txn) setOpenTxn(txn);
-      else toast.error("Transaction not found");
-    } catch (e) {
-      toast.error("Transaction lookup failed", { description: errorMessage(e) });
+    if (!/^0x[0-9a-fA-F]{64}$/.test(hash)) {
+      toast.error("Enter a valid 32-byte transaction hash");
+      return;
     }
+    window.location.assign(`/tx/${hash}`);
   };
 
   return (
@@ -73,12 +70,10 @@ export default function Transactions({ config }: PageProps) {
           ) : rows.length === 0 ? (
             <EmptyState>No transactions in the last {lookback} blocks.</EmptyState>
           ) : (
-            <TxnList rows={rows} onSelect={setOpenTxn} inset now={now} />
+            <TxnList rows={rows} inset now={now} />
           )}
         </CardContent>
       </Card>
-
-      <TxnDialog txn={openTxn} onClose={() => setOpenTxn(null)} />
     </>
   );
 }

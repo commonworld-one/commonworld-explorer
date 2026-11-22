@@ -24,9 +24,11 @@ COPY package.json package-lock.json ./
 RUN npm ci
 
 FROM build AS builder
+ARG BE_BASEPATH=
+ENV BE_BASEPATH=${BE_BASEPATH}
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-# BE_BASEPATH from .env.production is baked into the build.
+# BE_BASEPATH is a build-time route prefix; empty means root-level routes.
 RUN npm run build
 
 FROM base AS runner
@@ -38,7 +40,7 @@ ENV NODE_ENV=production \
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/public ./public
-COPY --from=builder /app/next-logger.config.js /app/.env.production ./
+COPY --from=builder /app/next-logger.config.js ./
 USER ubuntu
 EXPOSE 25000
 CMD ["node", "server.js"]

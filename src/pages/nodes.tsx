@@ -1,3 +1,4 @@
+// Commonworld Testnet modifications/additions; see NOTICE.
 import { useState, type ReactNode } from "react";
 import { Activity, ArrowLeftRight, Blocks, Users } from "lucide-react";
 import { PageHeader } from "@/components/Layout/PageHeader";
@@ -86,8 +87,6 @@ export default function Nodes({ config }: PageProps) {
               },
               { label: "Client", value: value(details?.nodeName) },
               { label: "Node ID", value: value(details?.nodeId), mono: true },
-              { label: "Enode", value: value(details?.enode), mono: true },
-              { label: "IP address", value: value(details?.ip), mono: true },
               { label: "RPC URL", value: config.rpcUrl, mono: true },
             ]}
           />

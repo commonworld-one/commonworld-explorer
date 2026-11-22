@@ -1,8 +1,8 @@
+// Commonworld Testnet modifications/additions; see NOTICE.
 import { useState } from "react";
 import { isAddress } from "ethers";
 import { toast } from "sonner";
 import { BlockCountSelect } from "@/components/Explorer/BlockCountSelect";
-import { ContractDialog } from "@/components/Explorer/ContractDialog";
 import { SearchForm } from "@/components/Explorer/SearchForm";
 import { PageHeader } from "@/components/Layout/PageHeader";
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -20,7 +20,6 @@ export default function Contracts({ config }: PageProps) {
   const [contracts, setContracts] = useState<ContractSummary[] | null>(null);
   const [count, setCount] = useState(10);
   const [now, setNow] = useState(() => Date.now());
-  const [open, setOpen] = useState<{ address: string; summary?: ContractSummary } | null>(null);
 
   usePolling(
     async (signal) => {
@@ -41,7 +40,7 @@ export default function Contracts({ config }: PageProps) {
       toast.error("Enter a valid 0x address");
       return;
     }
-    setOpen({ address: q, summary: contracts?.find((c) => c.address.toLowerCase() === q.toLowerCase()) });
+    window.location.assign(`/address/${q}`);
   };
 
   return (
@@ -81,15 +80,9 @@ export default function Contracts({ config }: PageProps) {
               </TableHeader>
               <TableBody>
                 {contracts.map((c) => (
-                  <TableRow
-                    key={c.address}
-                    tabIndex={0}
-                    onClick={() => setOpen({ address: c.address, summary: c })}
-                    onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && setOpen({ address: c.address, summary: c })}
-                    className="cursor-pointer outline-none focus-visible:bg-muted/50"
-                  >
+                  <TableRow key={c.address}>
                     <TableCell className="font-mono text-xs text-primary" title={c.address}>
-                      {shortenHex(c.address, 12, 8)}
+                      <a href={`/address/${c.address}`} className="hover:underline">{shortenHex(c.address, 12, 8)}</a>
                     </TableCell>
                     <TableCell className="font-mono text-xs" title={c.creator}>
                       {shortenHex(c.creator)}
@@ -104,12 +97,6 @@ export default function Contracts({ config }: PageProps) {
         </CardContent>
       </Card>
 
-      <ContractDialog
-        rpcUrl={config.rpcUrl}
-        address={open?.address ?? null}
-        summary={open?.summary}
-        onClose={() => setOpen(null)}
-      />
     </>
   );
 }
