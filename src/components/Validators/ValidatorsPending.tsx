@@ -9,7 +9,15 @@ import { StatusBadge } from "@/components/ui/StatusBadge";
 import { errorMessage, postApi } from "@/lib/api";
 import type { PendingVote } from "@/types/Validators";
 
-export function ValidatorsPending({ rpcUrl, votes }: { rpcUrl: string; votes: PendingVote[] | null }) {
+export function ValidatorsPending({
+  rpcUrl,
+  votes,
+  canDiscard,
+}: {
+  rpcUrl: string;
+  votes: PendingVote[] | null;
+  canDiscard: boolean;
+}) {
   const [busy, setBusy] = useState<string | null>(null);
 
   const discard = async (address: string) => {
@@ -42,10 +50,12 @@ export function ValidatorsPending({ rpcUrl, votes }: { rpcUrl: string; votes: Pe
                 <StatusBadge tone={add ? "success" : "danger"}>{add ? "Add" : "Remove"}</StatusBadge>
                 <code className="truncate font-mono text-[13px]">{address}</code>
               </div>
-              <Button variant="outline" disabled={busy !== null} onClick={() => discard(address)}>
-                {busy === address && <Spinner data-icon="inline-start" />}
-                Discard
-              </Button>
+              {canDiscard && (
+                <Button variant="outline" disabled={busy !== null} onClick={() => discard(address)}>
+                  {busy === address && <Spinner data-icon="inline-start" />}
+                  Discard
+                </Button>
+              )}
             </div>
           ))
         )}

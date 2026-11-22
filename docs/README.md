@@ -75,9 +75,9 @@ The server only proxies requests to the configured RPC URLs, and only for an all
 ### Validator voting (demo networks only)
 
 > [!WARNING]
-> Only use this on demo and test networks, never in production. It needs each validator's RPC endpoint and lets anyone signed in to the explorer vote validators in or out.
+> Only use this on demo and test networks, never in production. It needs each validator's RPC endpoint and lets signed-in users vote validators in or out. Voting is disabled unless `BE_VALIDATOR_VOTING_ENABLED=true`; it is also forcibly disabled when `DISABLE_AUTH=true`.
 
-Proposing or discarding a validator vote has to be sent to each validator's own RPC endpoint. To enable voting, provide a file listing them at `/config/validators.json`, or set `BE_VALIDATORS_CONFIG_PATH` to another path. The [Besu Dev Quickstart](https://www.npmjs.com/package/@consensys-software/besu-dev-quickstart) includes one for its network:
+Proposing or discarding a validator vote has to be sent to each validator's own RPC endpoint. To enable voting on an authenticated demo network, set `BE_VALIDATOR_VOTING_ENABLED=true` and provide a file listing validators at `/config/validators.json`, or set `BE_VALIDATORS_CONFIG_PATH` to another path. The [Besu Dev Quickstart](https://www.npmjs.com/package/@consensys-software/besu-dev-quickstart) includes one for its network:
 
 ```json
 {
@@ -91,7 +91,7 @@ Proposing or discarding a validator vote has to be sent to each validator's own 
 - `rpcUrl`: the validator's HTTP JSON-RPC endpoint, reachable from the explorer's server. Enable the `QBFT`, `IBFT` or `CLIQUE` API on it.
 - `name` (optional): the label in the validator picker. Defaults to the URL's host.
 
-Without this file, the validators page is read-only.
+If the file is absent, the voting flag is not explicitly enabled, or authentication is disabled, the validators page is read-only. The propose and discard APIs independently enforce the same gate.
 
 ## Local development
 
@@ -106,7 +106,7 @@ Without this file, the validators page is read-only.
 
 3. Open <http://localhost:25000/explorer>.
 
-Other scripts: `npm run build`, `npm start`, `npm run lint` and `npm run typecheck`.
+Other scripts: `npm run build`, `npm start`, `npm test`, `npm run lint` and `npm run typecheck`.
 
 ### UI components
 
@@ -133,6 +133,7 @@ Enable authentication in production. Set the values in `.env.production`:
 | `BE_PUBLIC_RPC_URL` | RPC URL given to the browser wallet when it adds the network. Defaults to `BE_RPC_URL`. Set it when browsers can't reach `BE_RPC_URL`, for example when that's an internal hostname. |
 | `BE_VALIDATORS_CONFIG_PATH` | Path to the validators file that enables voting, default `/config/validators.json`. Demo networks only. See [Validator voting](#validator-voting-demo-networks-only). |
 | `DISABLE_AUTH` | `true` turns authentication off. Any other value requires sign-in. |
+| `BE_VALIDATOR_VOTING_ENABLED` | Set to `true` only for an authenticated demo network to enable validator vote proposals. Defaults to disabled and is ignored when `DISABLE_AUTH=true`. |
 | `NEXTAUTH_URL` | Public URL of the auth API, including the base path, for example `https://example.com/explorer/api/auth`. |
 | `NEXTAUTH_SECRET` | Secret used to sign sessions. |
 | `BE_ALLOWED_DOMAINS` | Comma-separated email domains allowed to sign in through OAuth, for example `consensys.net`. |
