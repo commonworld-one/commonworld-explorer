@@ -14,7 +14,7 @@ The branch roles are:
 
 - `master` follows the upstream fork for comparison and selected upstream updates.
 - `main` records the latest captured Commonworld Testnet Explorer version deployed on the network.
-- `commonworld-testnet` is the working branch for the next testnet changes. After a change is reviewed, checked, and deployed, the same commit is moved into `main`.
+- `commonworld-testnet` is the working branch for the next testnet changes. After a change is reviewed, checked, and deployed, advance `main` to that deployed commit (normally by fast-forward).
 
 The latest live snapshot, checked on 2026-11-22, had the custom application build and its public-facing adapter running. Direct transaction, block, and address pages were opened in a browser and showed chain data. The token detail route was checked with a contract that is not a token and showed the expected message. This was a smoke check, not a long soak or load test. Image-to-source evidence and its limits are recorded in [docs/UPSTREAM.md](docs/UPSTREAM.md).
 

@@ -35,6 +35,6 @@ The current check was a route and runtime smoke check, not a long soak, load tes
 
 - `master` remains the upstream comparison/synchronization branch.
 - `main` is the latest captured Commonworld Testnet deployment snapshot and is intended to be the repository default branch.
-- `commonworld-testnet` is the forward development branch. After a change is reviewed and deployed, merge that same commit into `main`.
+- `commonworld-testnet` is the forward development branch. After a change is reviewed and deployed, advance `main` to that deployed commit (normally by fast-forward).
 
 At the time this local branch set was prepared, `commonworld-testnet` and `main` point to the same source snapshot. GitHub publication and changing the default branch are separate actions.
