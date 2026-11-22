@@ -65,7 +65,7 @@ The earlier check was a route and runtime smoke check, not a long soak, load tes
 - `commonworld-testnet` is the forward development branch. After a change is reviewed and deployed, advance `main` to that deployed commit (normally by fast-forward).
 - `codex/sync-deployed-explorer-20261122` carried the application patch identified by the 19:52 UTC deployment record and was merged into `main` through PR #1 at `abef66a`.
 
-At the start of this review, `commonworld-testnet` and `main` both pointed to `2fe875282193413d9c49b0b34960bb687cb9399e`. After PR #1, `main` advanced to `abef66ad6a16fe7bf91378d1c69048e3fe391e88`; `commonworld-testnet` remains at the earlier snapshot and should be synchronized before it is used for the next development cycle.
+At the start of this review, `commonworld-testnet` and `main` both pointed to `2fe875282193413d9c49b0b34960bb687cb9399e`. PRs #1 and #2 advanced `main` to `6e79cf9fc67a90e01251a9a196ae6e4d97bac05c`. On 2026-11-23, `commonworld-testnet` was fast-forwarded to that reviewed baseline so future development starts from the deployed application snapshot.
 
 ## Dependency audit
 
