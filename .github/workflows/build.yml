@@ -2,7 +2,9 @@ name: build
 
 on:
   push:
-    branches: [ master ]
+    branches: [ main, commonworld-testnet ]
+  pull_request:
+    branches: [ main, commonworld-testnet ]
   # publish.yml runs this before publishing a release tag.
   workflow_call:
 

@@ -16,6 +16,8 @@ permissions:
 
 jobs:
   renovatebot-check:
+    # This job uses Consensys' Renovate GitHub App credentials.
+    if: github.repository == 'Consensys-Incorporated/besu-blockchain-explorer'
     runs-on: ubuntu-24.04
     environment: security
     steps:

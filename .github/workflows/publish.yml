@@ -10,9 +10,12 @@ permissions:
 
 jobs:
   build:
+    # Publishes the Consensys image; Commonworld must choose its own registry first.
+    if: github.repository == 'Consensys-Incorporated/besu-blockchain-explorer'
     uses: ./.github/workflows/build.yml
 
   publishDocker:
+    if: github.repository == 'Consensys-Incorporated/besu-blockchain-explorer'
     runs-on: ubuntu-24.04
     needs: build
     permissions:
@@ -88,6 +91,7 @@ jobs:
           tags: ${{ steps.details.outputs.dockertags }}
 
   scan:
+    if: github.repository == 'Consensys-Incorporated/besu-blockchain-explorer'
     runs-on: ubuntu-latest
     needs: publishDocker
     permissions:
@@ -121,6 +125,7 @@ jobs:
           exit-code: '1'
 
   signAndAttest:
+    if: github.repository == 'Consensys-Incorporated/besu-blockchain-explorer'
     runs-on: ubuntu-24.04
     needs: publishDocker
     permissions:
