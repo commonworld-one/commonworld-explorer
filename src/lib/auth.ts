@@ -12,10 +12,8 @@ import GoogleProvider from "next-auth/providers/google";
 import OktaProvider from "next-auth/providers/okta";
 import SlackProvider from "next-auth/providers/slack";
 import TwitterProvider from "next-auth/providers/twitter";
-
-export function isAuthDisabled() {
-  return process.env.DISABLE_AUTH === "true";
-}
+import { isAuthDisabled } from "@/lib/featureFlags";
+export { isAuthDisabled } from "@/lib/featureFlags";
 
 const env = process.env;
 

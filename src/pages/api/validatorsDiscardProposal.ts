@@ -7,4 +7,4 @@ export default apiRoute<boolean>(async (body) => {
   return ethApiCall<boolean>(requireString(body, "rpcUrl"), consensusMethods[algorithm].discard, [
     requireAddress(body, "address"),
   ]);
-});
+}, { validatorVoting: true });

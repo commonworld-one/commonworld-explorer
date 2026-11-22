@@ -22,4 +22,5 @@ export type PageProps = {
   // Detected from the node; null when it can't be reached or has no consensus API enabled.
   algorithm: ConsensusAlgorithm | null;
   disableAuth: boolean;
+  validatorVotingEnabled: boolean;
 };

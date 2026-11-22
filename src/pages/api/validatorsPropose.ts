@@ -9,4 +9,4 @@ export default apiRoute<boolean>(async (body) => {
     requireAddress(body, "address"),
     body.vote === true,
   ]);
-});
+}, { validatorVoting: true });

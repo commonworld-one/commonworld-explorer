@@ -7,6 +7,32 @@ import type { Block, TokenInfo, TokenType } from "@/types/Explorer";
 // window of blocks straight from the node.
 
 export const MAX_BLOCKS = 50;
+const RECENT_BLOCK_CACHE_TTL_MS = 3_000;
+const MAX_RECENT_BLOCK_CACHE_ENTRIES = 4;
+const MAX_PARALLEL_BLOCK_READS = 4;
+const MAX_RECENT_BLOCK_RPC_CALLS = 5;
+
+type RecentBlocksCacheEntry = { expiresAt: number; blocks: Block[] };
+const recentBlocksCache = new Map<string, RecentBlocksCacheEntry>();
+const recentBlocksInFlight = new Map<string, Promise<Block[]>>();
+let activeRecentBlockRpcCalls = 0;
+const recentBlockRpcWaiters: (() => void)[] = [];
+
+async function withRecentBlockRpcSlot<T>(operation: () => Promise<T>): Promise<T> {
+  if (activeRecentBlockRpcCalls >= MAX_RECENT_BLOCK_RPC_CALLS) {
+    await new Promise<void>((resolve) => recentBlockRpcWaiters.push(resolve));
+  } else {
+    activeRecentBlockRpcCalls++;
+  }
+
+  try {
+    return await operation();
+  } finally {
+    const next = recentBlockRpcWaiters.shift();
+    if (next) next();
+    else activeRecentBlockRpcCalls--;
+  }
+}
 
 export function clampBlockCount(value: unknown): number {
   return Math.min(Math.max(Number(value) || 10, 1), MAX_BLOCKS);
@@ -15,16 +41,55 @@ export function clampBlockCount(value: unknown): number {
 // The latest `count` blocks (with full transactions), newest first. Txns that
 // emitted token Transfer events get a `tokenType`.
 export async function recentBlocks(rpcUrl: string, count: number): Promise<Block[]> {
-  const latest = parseInt(await ethApiCall<string>(rpcUrl, "eth_blockNumber"), 16);
+  const normalizedRpcUrl = rpcUrl.trim();
+  const normalizedCount = clampBlockCount(count);
+  const key = `${normalizedRpcUrl}\u0000${normalizedCount}`;
+  const now = Date.now();
+
+  for (const [cacheKey, entry] of recentBlocksCache) {
+    if (entry.expiresAt <= now) recentBlocksCache.delete(cacheKey);
+  }
+  const cached = recentBlocksCache.get(key);
+  if (cached) {
+    // Refresh insertion order for bounded least-recently-used eviction.
+    recentBlocksCache.delete(key);
+    recentBlocksCache.set(key, cached);
+    return structuredClone(cached.blocks);
+  }
+
+  const inFlight = recentBlocksInFlight.get(key);
+  if (inFlight) return structuredClone(await inFlight);
+
+  const pending = loadRecentBlocks(normalizedRpcUrl, normalizedCount)
+    .then((blocks) => {
+      while (recentBlocksCache.size >= MAX_RECENT_BLOCK_CACHE_ENTRIES) {
+        const oldest = recentBlocksCache.keys().next().value;
+        if (oldest === undefined) break;
+        recentBlocksCache.delete(oldest);
+      }
+      recentBlocksCache.set(key, {
+        expiresAt: Date.now() + RECENT_BLOCK_CACHE_TTL_MS,
+        blocks,
+      });
+      return blocks;
+    })
+    .finally(() => recentBlocksInFlight.delete(key));
+  recentBlocksInFlight.set(key, pending);
+  return structuredClone(await pending);
+}
+
+async function loadRecentBlocks(rpcUrl: string, count: number): Promise<Block[]> {
+  const latest = parseInt(
+    await withRecentBlockRpcSlot(() => ethApiCall<string>(rpcUrl, "eth_blockNumber")),
+    16
+  );
   const numbers = Array.from({ length: Math.min(count, latest + 1) }, (_, i) => latest - i);
   const [blocks, logs] = await Promise.all([
-    Promise.all(
-      numbers.map((n) =>
-        ethApiCall<Block | null>(rpcUrl, "eth_getBlockByNumber", ["0x" + n.toString(16), true])
-      )
-    ),
+    getBlocksWithLimitedConcurrency(rpcUrl, numbers),
     // The token tags are a nice-to-have, so a failed log query doesn't fail the blocks.
-    transferLogs(rpcUrl, numbers.at(-1) ?? 0, latest).catch(() => [] as Log[]),
+    withRecentBlockRpcSlot(() => transferLogs(rpcUrl, numbers.at(-1) ?? 0, latest)).catch(
+      () => [] as Log[]
+    ),
   ]);
   const tokenTypes = new Map<string, TokenType>();
   for (const log of logs) {
@@ -38,6 +103,41 @@ export async function recentBlocks(rpcUrl: string, count: number): Promise<Block
     if (tokenType) txn.tokenType = tokenType;
   }
   return found;
+}
+
+async function getBlocksWithLimitedConcurrency(
+  rpcUrl: string,
+  numbers: number[]
+): Promise<(Block | null)[]> {
+  const blocks = new Array<Block | null>(numbers.length);
+  let next = 0;
+  let failed = false;
+  let firstError: unknown;
+
+  const worker = async () => {
+    while (!failed) {
+      const index = next++;
+      if (index >= numbers.length) return;
+      try {
+        const number = numbers[index];
+        blocks[index] = await withRecentBlockRpcSlot(() =>
+          ethApiCall<Block | null>(rpcUrl, "eth_getBlockByNumber", [
+            "0x" + number.toString(16),
+            true,
+          ])
+        );
+      } catch (error) {
+        if (!failed) firstError = error;
+        failed = true;
+      }
+    }
+  };
+
+  await Promise.all(
+    Array.from({ length: Math.min(MAX_PARALLEL_BLOCK_READS, numbers.length) }, () => worker())
+  );
+  if (failed) throw firstError;
+  return blocks;
 }
 
 export type Log = {

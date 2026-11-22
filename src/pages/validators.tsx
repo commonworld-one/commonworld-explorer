@@ -12,7 +12,7 @@ import { useSelectedValidator } from "@/lib/nodeContext";
 import type { PageProps } from "@/types/Config";
 import type { PendingVote, Validator } from "@/types/Validators";
 
-export default function Validators({ config, algorithm }: PageProps) {
+export default function Validators({ config, algorithm, validatorVotingEnabled }: PageProps) {
   // Voting needs each validator's own RPC endpoint, which only the demo validators file provides.
   const [validator, selectValidator] = useSelectedValidator(config.validators);
   const rpcUrl = validator?.rpcUrl ?? config.rpcUrl;
@@ -61,7 +61,11 @@ export default function Validators({ config, algorithm }: PageProps) {
       />
       <Alert className="mb-6">
         <Info />
-        {validator ? (
+        {!validatorVotingEnabled ? (
+          <AlertDescription>
+            <p>Validator information is read-only on this network.</p>
+          </AlertDescription>
+        ) : validator ? (
           <AlertDescription className="space-y-2">
             <p>
               Votes are sent only to the validator selected above. To add or remove a validator,
@@ -84,14 +88,14 @@ export default function Validators({ config, algorithm }: PageProps) {
       </Alert>
       <div className={validator ? "grid gap-6 lg:grid-cols-2" : undefined}>
         <ValidatorsActive
-          rpcUrl={validator ? rpcUrl : null}
+          rpcUrl={validatorVotingEnabled && validator ? rpcUrl : null}
           validators={validators}
           error={error}
         />
         {validator && (
           <div className="space-y-6">
-            <ValidatorsPropose rpcUrl={rpcUrl} />
-            <ValidatorsPending rpcUrl={rpcUrl} votes={votes} />
+            {validatorVotingEnabled && <ValidatorsPropose rpcUrl={rpcUrl} />}
+            <ValidatorsPending rpcUrl={rpcUrl} votes={votes} canDiscard={validatorVotingEnabled} />
           </div>
         )}
       </div>
