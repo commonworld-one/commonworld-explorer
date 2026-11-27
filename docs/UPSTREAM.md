@@ -67,6 +67,15 @@ The earlier check was a route and runtime smoke check, not a long soak, load tes
 
 At the start of this review, `commonworld-testnet` and `main` both pointed to `2fe875282193413d9c49b0b34960bb687cb9399e`. PRs #1 and #2 advanced `main` to `6e79cf9fc67a90e01251a9a196ae6e4d97bac05c`. On 2026-11-23, `commonworld-testnet` was fast-forwarded to that reviewed baseline so future development starts from the deployed application snapshot.
 
+## Upstream automation removed
+
+This change removes three upstream files from `commonworld-testnet`: `.github/workflows/publish.yml`, `.github/workflows/renovatebot.yml` and `renovate.json`. They stay in the `master` comparison branch and in the git history.
+
+- `publish.yml` ran only in Consensys-Incorporated/besu-blockchain-explorer (both jobs were conditioned on that repository name) and was disabled in this repository. It pushed the upstream Docker Hub image. This repository does not have its own registry choice yet, so nothing here publishes an image.
+- `renovatebot.yml` also ran only in the upstream repository (its job used the upstream Renovate App credentials) and was disabled here. `renovate.json` was its configuration.
+
+`build.yml` is kept as is, including its `workflow_call` trigger; only a comment that pointed at `publish.yml` was reworded. When `master` is synchronized from upstream later, these files can reappear and may need to be excluded again.
+
 ## Dependency audit
 
 The dated 2026-11-22 audit result and its scope are recorded in [DEPENDENCY_AUDIT.md](DEPENDENCY_AUDIT.md). The application dependency files were not changed as part of that review.

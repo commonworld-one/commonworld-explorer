@@ -6,7 +6,7 @@ on:
   pull_request:
     branches: [ main, commonworld-testnet ]
   workflow_dispatch:
-  # publish.yml runs this before publishing a release tag.
+  # Lets other workflows call this one.
   workflow_call:
 
 permissions:
